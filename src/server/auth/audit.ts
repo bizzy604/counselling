@@ -31,7 +31,7 @@ export function recordAuditEvent(event: Omit<AuditEvent, "id" | "occurredAt">) {
   });
 }
 
-export async function listRecentAuditEvents(limit = 50) {
+export async function listRecentAuditEvents(limit = 50): Promise<AuditEvent[]> {
   const rows = await prisma.auditLog.findMany({
     orderBy: {
       occurredAt: "desc",
