@@ -106,6 +106,12 @@ model Client {
   counsellingRequests   CounsellingRequest[]
   appointments          Appointment[]
   referrals             Referral[]           @relation("ReferralClient")
+  moodEntries          MoodEntry[]
+  journalEntries       JournalEntry[]
+  sessionNotes         SessionNote[]        @relation("SessionNoteClient")
+  contentAssignments   ContentAssignment[]
+  programmeEnrollments ProgrammeEnrollment[]
+  crisisEvents         CrisisEvent[]
 
   @@map("clients")
 }
@@ -114,6 +120,7 @@ model Counsellor {
   userId            String                        @id @map("user_id") @db.Uuid
   licenceNumber     String                        @unique @map("licence_number") @db.VarChar(100)
   specialisations   String[]                      @default([])
+  languages         String[]                      @default([])
   bio               String?
   maxCaseload       Int                           @default(25) @map("max_caseload")
   isOnCall          Boolean                       @default(false) @map("is_on_call")
@@ -125,6 +132,7 @@ model Counsellor {
   appointments      Appointment[]
   preferredRequests CounsellingRequest[]          @relation("PreferredCounsellor")
   assignedRequests  CounsellingRequest[]          @relation("AssignedCounsellor")
+  sessionNotes      SessionNote[]
 
   @@map("counsellors")
 }
@@ -246,6 +254,7 @@ model Appointment {
   client               Client              @relation(fields: [clientId], references: [userId], onDelete: Cascade)
   counsellor           Counsellor          @relation(fields: [counsellorId], references: [userId], onDelete: Restrict)
   counsellingRequest   CounsellingRequest? @relation(fields: [counsellingRequestId], references: [id], onDelete: SetNull)
+  sessionNotes         SessionNote[]
 
   @@unique([counsellorId, scheduledAt])
   @@index([clientId, scheduledAt])
@@ -286,4 +295,170 @@ model Referral {
   @@index([employerId, createdAt])
   @@index([status, createdAt])
   @@map("referrals")
+}
+
+// ─── Mood tracking ───────────────────────────────────────────────
+
+model MoodEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  clientId  String   @map("client_id") @db.Uuid
+  value     Int      // 1-5 emoji scale
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  client    Client   @relation(fields: [clientId], references: [userId], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+  @@map("mood_entries")
+}
+
+// ─── Journal ─────────────────────────────────────────────────────
+
+model JournalEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  clientId  String   @map("client_id") @db.Uuid
+  prompt    String?  @db.VarChar(500)
+  body      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  client    Client   @relation(fields: [clientId], references: [userId], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+  @@map("journal_entries")
+}
+
+// ─── Session notes ───────────────────────────────────────────────
+
+model SessionNote {
+  id            String      @id @default(uuid()) @db.Uuid
+  counsellorId  String      @map("counsellor_id") @db.Uuid
+  clientId      String      @map("client_id") @db.Uuid
+  appointmentId String?     @map("appointment_id") @db.Uuid
+  content       String
+  isLocked      Boolean     @default(false) @map("is_locked")
+  lockedAt      DateTime?   @map("locked_at") @db.Timestamptz(6)
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  counsellor    Counsellor  @relation(fields: [counsellorId], references: [userId], onDelete: Cascade)
+  client        Client      @relation("SessionNoteClient", fields: [clientId], references: [userId], onDelete: Cascade)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([counsellorId, createdAt])
+  @@index([clientId, createdAt])
+  @@map("session_notes")
+}
+
+// ─── Content library ─────────────────────────────────────────────
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Content {
+  id          String        @id @default(uuid()) @db.Uuid
+  title       String        @db.VarChar(500)
+  body        String?
+  category    String        @db.VarChar(200)
+  status      ContentStatus @default(DRAFT)
+  emoji       String?       @db.VarChar(10)
+  duration    String?       @db.VarChar(50) // e.g. "8 min read"
+  authorId    String?       @map("author_id") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  assignments ContentAssignment[]
+
+  @@index([status, category])
+  @@map("content")
+}
+
+model ContentAssignment {
+  id        String   @id @default(uuid()) @db.Uuid
+  contentId String   @map("content_id") @db.Uuid
+  clientId  String   @map("client_id") @db.Uuid
+  assignedBy String  @map("assigned_by") @db.Uuid
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+  rating    Int?     // 1-5
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  client    Client   @relation(fields: [clientId], references: [userId], onDelete: Cascade)
+
+  @@unique([contentId, clientId])
+  @@index([clientId])
+  @@map("content_assignments")
+}
+
+// ─── Programmes ──────────────────────────────────────────────────
+
+model Programme {
+  id          String                @id @default(uuid()) @db.Uuid
+  title       String                @db.VarChar(500)
+  description String?
+  moduleCount Int                   @default(1) @map("module_count")
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  enrollments ProgrammeEnrollment[]
+
+  @@map("programmes")
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+}
+
+model ProgrammeEnrollment {
+  id               String           @id @default(uuid()) @db.Uuid
+  programmeId      String           @map("programme_id") @db.Uuid
+  clientId         String           @map("client_id") @db.Uuid
+  completedModules Int              @default(0) @map("completed_modules")
+  status           EnrollmentStatus @default(ACTIVE)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  programme        Programme        @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  client           Client           @relation(fields: [clientId], references: [userId], onDelete: Cascade)
+
+  @@unique([programmeId, clientId])
+  @@index([clientId])
+  @@map("programme_enrollments")
+}
+
+// ─── Crisis events ───────────────────────────────────────────────
+
+enum CrisisSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum FollowUpStatus {
+  PENDING
+  SCHEDULED
+  COMPLETED
+}
+
+model CrisisEvent {
+  id             String         @id @default(uuid()) @db.Uuid
+  clientId       String         @map("client_id") @db.Uuid
+  severity       CrisisSeverity @default(MEDIUM)
+  followUpStatus FollowUpStatus @default(PENDING) @map("follow_up_status")
+  notes          String?
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  client         Client         @relation(fields: [clientId], references: [userId], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+  @@index([followUpStatus])
+  @@map("crisis_events")
+}
+
+// ─── Platform settings ───────────────────────────────────────────
+
+model PlatformSetting {
+  key       String   @id @db.VarChar(100)
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("platform_settings")
 }

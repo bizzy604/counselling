@@ -106,7 +106,9 @@
   --radius-2xl: 24px;
   --radius-full: 9999px;
 
+  --shadow-xs: 0 1px 2px rgb(10 10 9 / 0.05);
   --shadow-sm: 0 1px 3px rgb(10 10 9 / 0.08), 0 1px 2px rgb(10 10 9 / 0.05);
+  --shadow-md: 0 4px 6px rgb(10 10 9 / 0.07), 0 2px 4px rgb(10 10 9 / 0.05);
   --shadow-lg: 0 10px 15px rgb(10 10 9 / 0.08), 0 4px 6px rgb(10 10 9 / 0.04);
   --shadow-xl: 0 20px 25px rgb(10 10 9 / 0.1), 0 8px 10px rgb(10 10 9 / 0.05);
   --shadow-brand: 0 4px 14px rgb(24 92 44 / 0.2);
@@ -114,9 +116,16 @@
 
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
+  --z-base: 0;
+  --z-raised: 10;
+  --z-dropdown: 100;
   --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
   --z-crisis: 9999;
 }
 

@@ -217,9 +217,11 @@ select {
 }
 
 .btn-sos {
+  animation: sos-pulse 3s ease-in-out infinite;
   background: var(--danger);
   border-color: var(--danger);
   border-radius: var(--radius-full);
+  box-shadow: 0 0 0 0 rgb(176 32 32 / 0.4);
   color: #ffffff;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -227,7 +229,13 @@ select {
   text-transform: uppercase;
 }
 
+@keyframes sos-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(176 32 32 / 0); }
+  50%      { box-shadow: 0 0 0 8px rgb(176 32 32 / 0); }
+}
+
 .btn-sos:hover {
+  animation: none;
   background: var(--danger-hover);
   box-shadow: var(--shadow-danger);
 }
@@ -235,13 +243,22 @@ select {
 .badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.25rem;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   padding: 0.45rem 0.75rem;
   text-transform: uppercase;
+}
+
+.badge::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .badge-active {
@@ -327,6 +344,43 @@ select {
 
 .mood-dot:hover {
   transform: translateY(-2px) scale(1.03);
+}
+
+/* Page transition */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: page-enter 200ms var(--transition-base) forwards;
+}
+
+/* Card stagger */
+@keyframes card-appear {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.card-stagger > :nth-child(1) { animation: card-appear 250ms 0ms ease-out both; }
+.card-stagger > :nth-child(2) { animation: card-appear 250ms 60ms ease-out both; }
+.card-stagger > :nth-child(3) { animation: card-appear 250ms 120ms ease-out both; }
+.card-stagger > :nth-child(4) { animation: card-appear 250ms 180ms ease-out both; }
+
+/* Toast enter */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* Breathing exercise */
+@keyframes breathe {
+  0%, 100% { transform: scale(1);    opacity: 0.6; }
+  25%      { transform: scale(1.4);  opacity: 1; }
+  50%      { transform: scale(1.4);  opacity: 1; }
+  75%      { transform: scale(0.85); opacity: 0.7; }
+}
+.breathing-circle {
+  animation: breathe 14s ease-in-out infinite;
+  transform-origin: center;
 }
 
 @media (prefers-reduced-motion: reduce) {

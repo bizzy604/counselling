@@ -38,7 +38,7 @@ export function Topbar({ description, showSOS = false, title, user }: TopbarProp
             <p className="text-caption text-[var(--text-secondary)]">{user.role}</p>
           </div>
           <form action={signOutAction}>
-            <Button aria-label="Sign out" size="sm" variant="ghost">
+            <Button aria-label="Sign out" size="sm" type="submit" variant="ghost">
               <LogOut aria-hidden="true" size={16} />
               <span className="hidden sm:inline">Sign out</span>
             </Button>
