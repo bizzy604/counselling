@@ -2,7 +2,7 @@
 
 import { ShieldCheck } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -10,6 +10,14 @@ import { Card } from "@/components/ui/Card";
 const CODE_LENGTH = 6;
 
 export default function MfaVerifyPage() {
+  return (
+    <Suspense>
+      <MfaVerifyForm />
+    </Suspense>
+  );
+}
+
+function MfaVerifyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") ?? "";
