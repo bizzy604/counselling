@@ -120,7 +120,7 @@ export default async function CounsellorDashboardPage({
                     variant={
                       appointment.status === "SCHEDULED"
                         ? "active"
-                        : appointment.status === "COMPLETED"
+                        : appointment.status === "ATTENDED"
                           ? "complete"
                           : "inactive"
                     }
